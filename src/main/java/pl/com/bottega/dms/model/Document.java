@@ -4,7 +4,10 @@ import pl.com.bottega.dms.model.commands.*;
 import pl.com.bottega.dms.model.numbers.NumberGenerator;
 import pl.com.bottega.dms.model.printing.PrintCostCalculator;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
 
 import static pl.com.bottega.dms.model.DocumentStatus.*;
 
@@ -22,6 +25,8 @@ public class Document {
     private EmployeeId verifierId;
     private EmployeeId editorId;
     private EmployeeId publisherId;
+    private BigDecimal printCost;
+    private Set<Confirmation> confirmations;
 
     public Document(CreateDocumentCommand cmd, NumberGenerator numberGenerator) {
         this.number = numberGenerator.generate();
@@ -29,6 +34,7 @@ public class Document {
         this.title = cmd.getTitle();
         this.createdAt = LocalDateTime.now();
         this.creatorId = cmd.getEmployeeId();
+        this.confirmations = new HashSet<>();
     }
 
     public void change(ChangeDocumentCommand cmd) {
@@ -59,10 +65,20 @@ public class Document {
         this.status = PUBLISHED;
         this.publishedAt = LocalDateTime.now();
         this.publisherId = cmd.getEmployeeId();
+        this.printCost = printCostCalculator.calculateCost(this);
+        createConfirmations(cmd);
+    }
+
+    private void createConfirmations(PublishDocumentCommand cmd) {
+        for(EmployeeId employeeId : cmd.getRecipients()) {
+            confirmations.add(new Confirmation(employeeId));
+        }
     }
 
     public void confirm(ConfirmDocumentCommand cmd) {
-
+        for(Confirmation confirmation : confirmations)
+            if(confirmation.isOwnedBy(cmd.getEmployeeId()))
+                confirmation.confirm();
     }
 
     public void confirmFor(ConfirmForDocumentCommand cmd) {
@@ -115,5 +131,21 @@ public class Document {
 
     public EmployeeId getPublisherId() {
         return publisherId;
+    }
+
+    public BigDecimal getPrintCost() {
+        return printCost;
+    }
+
+    public void setPrintCost(BigDecimal printCost) {
+        this.printCost = printCost;
+    }
+
+    public boolean isConfirmedBy(EmployeeId employeeId) {
+        for(Confirmation confirmation : confirmations) {
+            if(confirmation.isOwnedBy(employeeId))
+                return confirmation.isConfirmed();
+        }
+        return false;
     }
 }

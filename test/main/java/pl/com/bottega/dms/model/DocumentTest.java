@@ -1,7 +1,12 @@
 package pl.com.bottega.dms.model;
 
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.junit.MockitoJUnitRunner;
 import pl.com.bottega.dms.model.commands.ChangeDocumentCommand;
+import pl.com.bottega.dms.model.commands.ConfirmDocumentCommand;
 import pl.com.bottega.dms.model.commands.CreateDocumentCommand;
 import pl.com.bottega.dms.model.commands.PublishDocumentCommand;
 import pl.com.bottega.dms.model.numbers.NumberGenerator;
@@ -10,12 +15,18 @@ import pl.com.bottega.dms.model.printing.PrintCostCalculator;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.Arrays;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.*;
 import static pl.com.bottega.dms.model.DocumentStatus.*;
 
+@RunWith(MockitoJUnitRunner.class)
 public class DocumentTest {
+
+    @Mock
+    private PrintCostCalculator printCostCalculator;
 
     @Test
     public void shouldBeDraftAfterCreate() {
@@ -86,11 +97,8 @@ public class DocumentTest {
     @Test
     //4. Dokument po publickacji powinien zmienić status na PUBLISHED.
     public void shouldChangeStatusToPublishedOnPublication() {
-        // given verified document
-        Document document = given().verifiedDocument();
-
-        // when publishing document
-        document.publish(new PublishDocumentCommand(), new StubPrintCostCalculator());
+        // given published document
+        Document document = given().publishedDocument();
 
         // then
         assertEquals(PUBLISHED, document.getStatus());
@@ -241,14 +249,44 @@ public class DocumentTest {
     public void shouldNotAllowPublishingArchivedDocuments() {
         Document document = given().archivedDocument();
 
-        document.publish(new PublishDocumentCommand(), new StubPrintCostCalculator());
+        document.publish(new PublishDocumentCommand(), printCostCalculator);
+    }
+
+    @Test
+    public void shouldCalculateCostOnPublish() {
+        //given
+        Document document = given().verifiedDocument();
+        when(printCostCalculator.calculateCost(document)).thenReturn(new BigDecimal(50));
+
+        //when
+        PublishDocumentCommand publishDocumentCommand = new PublishDocumentCommand();
+        publishDocumentCommand.setRecipients(Arrays.asList(new EmployeeId(1L)));
+        document.publish(publishDocumentCommand, printCostCalculator);
+
+        //then
+        verify(printCostCalculator, times(1)).calculateCost(document);
+        assertEquals(new BigDecimal(50), document.getPrintCost());
     }
 
     @Test(expected = DocumentStatusException.class)
     public void shouldNotAllowPublishingDraftDocuments() {
         Document document = given().newDocument();
 
-        document.publish(new PublishDocumentCommand(), new StubPrintCostCalculator());
+        document.publish(new PublishDocumentCommand(), printCostCalculator);
+    }
+
+    @Test
+    public void shouldAllowConfirming() {
+        //given
+        Document document = given().publishedDocument(new EmployeeId(1L));
+
+        //when
+        ConfirmDocumentCommand cmd = new ConfirmDocumentCommand();
+        cmd.setEmployeeId(new EmployeeId(1L));
+        document.confirm(cmd);
+
+        // then
+        assertTrue(document.isConfirmedBy(new EmployeeId(1L)));
     }
 
     private static final Long DATE_EPS = 500L;
@@ -256,20 +294,6 @@ public class DocumentTest {
     private void assertSameTime(LocalDateTime expected, LocalDateTime actual) {
         assertTrue(ChronoUnit.MILLIS.between(expected, actual) < DATE_EPS);
     }
-
-    class StubNumberGenerator implements NumberGenerator {
-
-        public DocumentNumber generate() {
-            return anyDocumentNumber();
-        }
-    }
-
-    class StubPrintCostCalculator implements PrintCostCalculator {
-        public BigDecimal calculateCost(Document document) {
-            return BigDecimal.ZERO;
-        }
-    }
-
 
     private DocumentAssembler given() {
         return new DocumentAssembler();
@@ -291,7 +315,8 @@ public class DocumentTest {
             CreateDocumentCommand cmd = new CreateDocumentCommand();
             cmd.setTitle("test title");
             cmd.setEmployeeId(employeeId);
-            NumberGenerator numberGenerator = new StubNumberGenerator();
+            NumberGenerator numberGenerator = mock(NumberGenerator.class);
+            when(numberGenerator.generate()).thenReturn(anyDocumentNumber());
             return new Document(cmd, numberGenerator);
         }
 
@@ -302,10 +327,15 @@ public class DocumentTest {
         }
 
         public Document publishedDocument() {
+           return publishedDocument(new EmployeeId(1L));
+        }
+
+        public Document publishedDocument(EmployeeId... employeeIds) {
             Document document = verifiedDocument();
             PublishDocumentCommand cmd = new PublishDocumentCommand();
+            cmd.setRecipients(Arrays.asList(employeeIds));
             cmd.setEmployeeId(anyEmployeeId());
-            document.publish(cmd, new StubPrintCostCalculator());
+            document.publish(cmd, printCostCalculator);
             return document;
         }
 
