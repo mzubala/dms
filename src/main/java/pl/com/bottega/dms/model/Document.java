@@ -60,7 +60,7 @@ public class Document {
     }
 
     public void publish(PublishDocumentCommand cmd, PrintCostCalculator printCostCalculator) {
-        if(!this.status.equals(VERIFIED))
+        if (!this.status.equals(VERIFIED))
             throw new DocumentStatusException("Document should be VERIFIED to PUBLISH");
         this.status = PUBLISHED;
         this.publishedAt = LocalDateTime.now();
@@ -70,19 +70,27 @@ public class Document {
     }
 
     private void createConfirmations(PublishDocumentCommand cmd) {
-        for(EmployeeId employeeId : cmd.getRecipients()) {
+        for (EmployeeId employeeId : cmd.getRecipients()) {
             confirmations.add(new Confirmation(employeeId));
         }
     }
 
     public void confirm(ConfirmDocumentCommand cmd) {
-        for(Confirmation confirmation : confirmations)
-            if(confirmation.isOwnedBy(cmd.getEmployeeId()))
+        for (Confirmation confirmation : confirmations)
+            if (confirmation.isOwnedBy(cmd.getEmployeeId())) {
                 confirmation.confirm();
+                return;
+            }
+        throw new DocumentStatusException(String.format("Document not published for %s", cmd.getEmployeeId()));
     }
 
     public void confirmFor(ConfirmForDocumentCommand cmd) {
-
+        for (Confirmation confirmation : confirmations)
+            if (confirmation.isOwnedBy(cmd.getEmployeeId())) {
+                confirmation.confirmFor(cmd.getConfirmingEmployeeId());
+                return;
+            }
+        throw new DocumentStatusException(String.format("Document not published for %s", cmd.getEmployeeId()));
     }
 
     public DocumentStatus getStatus() {
@@ -142,8 +150,8 @@ public class Document {
     }
 
     public boolean isConfirmedBy(EmployeeId employeeId) {
-        for(Confirmation confirmation : confirmations) {
-            if(confirmation.isOwnedBy(employeeId))
+        for (Confirmation confirmation : confirmations) {
+            if (confirmation.isOwnedBy(employeeId))
                 return confirmation.isConfirmed();
         }
         return false;
