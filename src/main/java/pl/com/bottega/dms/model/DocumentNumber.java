@@ -8,6 +8,10 @@ public class DocumentNumber {
         this.number = number;
     }
 
+    public String getNumber() {
+        return number;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -23,5 +27,4 @@ public class DocumentNumber {
     public int hashCode() {
         return number.hashCode();
     }
-
 }
