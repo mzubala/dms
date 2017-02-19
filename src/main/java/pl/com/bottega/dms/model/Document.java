@@ -4,6 +4,7 @@ import pl.com.bottega.dms.model.commands.*;
 import pl.com.bottega.dms.model.numbers.NumberGenerator;
 import pl.com.bottega.dms.model.printing.PrintCostCalculator;
 
+import javax.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.HashSet;
@@ -11,9 +12,12 @@ import java.util.Set;
 
 import static pl.com.bottega.dms.model.DocumentStatus.*;
 
+@Entity
 public class Document {
 
+    @EmbeddedId
     private DocumentNumber number;
+    @Enumerated(EnumType.STRING)
     private DocumentStatus status;
     private String title;
     private String content;
@@ -21,12 +25,25 @@ public class Document {
     private LocalDateTime verifiedAt;
     private LocalDateTime publishedAt;
     private LocalDateTime changedAt;
+    @Embedded
+    @AttributeOverride(name="id", column = @Column(name = "creatorId"))
     private EmployeeId creatorId;
+    @Embedded
+    @AttributeOverride(name="id", column = @Column(name = "verifierId"))
     private EmployeeId verifierId;
+    @Embedded
+    @AttributeOverride(name="id", column = @Column(name = "editorId"))
     private EmployeeId editorId;
+    @Embedded
+    @AttributeOverride(name="id", column = @Column(name = "publisherId"))
     private EmployeeId publisherId;
     private BigDecimal printCost;
+
+    @OneToMany
+    @JoinColumn(name="documentNumber")
     private Set<Confirmation> confirmations;
+
+    Document() {}
 
     public Document(CreateDocumentCommand cmd, NumberGenerator numberGenerator) {
         this.number = numberGenerator.generate();

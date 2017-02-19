@@ -1,7 +1,10 @@
 package pl.com.bottega.dms.application.impl;
 
+import org.springframework.transaction.annotation.Transactional;
 import pl.com.bottega.dms.application.DocumentFlowProcess;
+import pl.com.bottega.dms.model.Document;
 import pl.com.bottega.dms.model.DocumentNumber;
+import pl.com.bottega.dms.model.DocumentRepository;
 import pl.com.bottega.dms.model.commands.ChangeDocumentCommand;
 import pl.com.bottega.dms.model.commands.CreateDocumentCommand;
 import pl.com.bottega.dms.model.commands.PublishDocumentCommand;
@@ -12,16 +15,21 @@ public class StandardDocumentFlowProcess implements DocumentFlowProcess {
 
     private NumberGenerator numberGenerator;
     private PrintCostCalculator printCostCalculator;
+    private DocumentRepository documentRepository;
 
-    public StandardDocumentFlowProcess(NumberGenerator numberGenerator, PrintCostCalculator printCostCalculator) {
+    public StandardDocumentFlowProcess(NumberGenerator numberGenerator, PrintCostCalculator printCostCalculator,
+                                       DocumentRepository documentRepository) {
         this.numberGenerator = numberGenerator;
         this.printCostCalculator = printCostCalculator;
+        this.documentRepository = documentRepository;
     }
 
     @Override
+    @Transactional
     public DocumentNumber create(CreateDocumentCommand cmd) {
-        System.out.println("Hello World!!!!!!");
-        return null;
+        Document document = new Document(cmd, numberGenerator);
+        documentRepository.put(document);
+        return document.getNumber();
     }
 
     @Override

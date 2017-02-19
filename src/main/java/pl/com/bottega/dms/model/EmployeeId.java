@@ -1,5 +1,8 @@
 package pl.com.bottega.dms.model;
 
+import javax.persistence.Embeddable;
+
+@Embeddable
 public class EmployeeId {
 
     private Long id;

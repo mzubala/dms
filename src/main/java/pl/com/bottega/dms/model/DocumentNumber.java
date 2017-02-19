@@ -1,6 +1,9 @@
 package pl.com.bottega.dms.model;
 
-public class DocumentNumber {
+import java.io.Serializable;
+
+public class DocumentNumber implements Serializable {
+
 
     private String number;
 
