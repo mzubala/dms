@@ -8,6 +8,7 @@ import java.util.List;
 public class PublishDocumentCommand {
     private EmployeeId employeeId;
     private Collection<EmployeeId> recipients;
+    private String number;
 
     public EmployeeId getEmployeeId() {
         return employeeId;
@@ -23,5 +24,13 @@ public class PublishDocumentCommand {
 
     public Collection<EmployeeId> getRecipients() {
         return recipients;
+    }
+
+    public String getNumber() {
+        return number;
+    }
+
+    public void setNumber(String number) {
+        this.number = number;
     }
 }

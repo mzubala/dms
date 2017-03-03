@@ -7,6 +7,7 @@ import pl.com.bottega.dms.model.printing.PrintCostCalculator;
 import javax.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -26,24 +27,25 @@ public class Document {
     private LocalDateTime publishedAt;
     private LocalDateTime changedAt;
     @Embedded
-    @AttributeOverride(name="id", column = @Column(name = "creatorId"))
+    @AttributeOverride(name = "id", column = @Column(name = "creatorId"))
     private EmployeeId creatorId;
     @Embedded
-    @AttributeOverride(name="id", column = @Column(name = "verifierId"))
+    @AttributeOverride(name = "id", column = @Column(name = "verifierId"))
     private EmployeeId verifierId;
     @Embedded
-    @AttributeOverride(name="id", column = @Column(name = "editorId"))
+    @AttributeOverride(name = "id", column = @Column(name = "editorId"))
     private EmployeeId editorId;
     @Embedded
-    @AttributeOverride(name="id", column = @Column(name = "publisherId"))
+    @AttributeOverride(name = "id", column = @Column(name = "publisherId"))
     private EmployeeId publisherId;
     private BigDecimal printCost;
 
-    @OneToMany
-    @JoinColumn(name="documentNumber")
+    @OneToMany(cascade = CascadeType.ALL)
+    @JoinColumn(name = "documentNumber")
     private Set<Confirmation> confirmations;
 
-    Document() {}
+    Document() {
+    }
 
     public Document(CreateDocumentCommand cmd, NumberGenerator numberGenerator) {
         this.number = numberGenerator.generate();
@@ -93,21 +95,13 @@ public class Document {
     }
 
     public void confirm(ConfirmDocumentCommand cmd) {
-        for (Confirmation confirmation : confirmations)
-            if (confirmation.isOwnedBy(cmd.getEmployeeId())) {
-                confirmation.confirm();
-                return;
-            }
-        throw new DocumentStatusException(String.format("Document not published for %s", cmd.getEmployeeId()));
+        Confirmation confirmation = getConfirmation(cmd.getEmployeeId());
+        confirmation.confirm();
     }
 
     public void confirmFor(ConfirmForDocumentCommand cmd) {
-        for (Confirmation confirmation : confirmations)
-            if (confirmation.isOwnedBy(cmd.getEmployeeId())) {
-                confirmation.confirmFor(cmd.getConfirmingEmployeeId());
-                return;
-            }
-        throw new DocumentStatusException(String.format("Document not published for %s", cmd.getEmployeeId()));
+        Confirmation confirmation = getConfirmation(cmd.getEmployeeId());
+        confirmation.confirmFor(cmd.getConfirmingEmployeeId());
     }
 
     public DocumentStatus getStatus() {
@@ -167,10 +161,18 @@ public class Document {
     }
 
     public boolean isConfirmedBy(EmployeeId employeeId) {
+        return getConfirmation(employeeId).isConfirmed();
+    }
+
+    public Set<Confirmation> getConfirmations() {
+        return Collections.unmodifiableSet(confirmations);
+    }
+
+    public Confirmation getConfirmation(EmployeeId employeeId) {
         for (Confirmation confirmation : confirmations) {
             if (confirmation.isOwnedBy(employeeId))
-                return confirmation.isConfirmed();
+                return confirmation;
         }
-        return false;
+        throw new DocumentStatusException(String.format("No confirmation for %s", employeeId));
     }
 }

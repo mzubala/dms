@@ -7,6 +7,8 @@ public class DocumentNumber implements Serializable {
 
     private String number;
 
+    DocumentNumber() {}
+
     public DocumentNumber(String number) {
         this.number = number;
     }
