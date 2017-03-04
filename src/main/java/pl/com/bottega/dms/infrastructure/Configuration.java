@@ -15,37 +15,4 @@ import pl.com.bottega.dms.model.printing.RGBPrintCostCalculator;
 @org.springframework.context.annotation.Configuration
 public class Configuration {
 
-    @Bean
-    public DocumentFlowProcess documentFlowProcess(NumberGenerator numberGenerator,
-                                                   PrintCostCalculator printCostCalculator,
-                                                   DocumentRepository documentRepository
-    ) {
-        return new StandardDocumentFlowProcess(numberGenerator, printCostCalculator, documentRepository);
-    }
-
-    @Bean
-    public NumberGenerator numberGenerator() {
-        return new ISONumberGenerator();
-    }
-
-    @Bean
-    public PrintCostCalculator printCostCalculator() {
-        return new RGBPrintCostCalculator();
-    }
-
-    @Bean
-    public DocumentCatalog documentCatalog() {
-        return new JPADocumentCatalog();
-    }
-
-    @Bean
-    public DocumentRepository documentRepository() {
-        return new JPADocumentRepository();
-    }
-
-    @Bean
-    public ReadingConfirmator readingConfirmator(DocumentRepository repo) {
-        return new StandardReadingConfirmator(repo);
-    }
-
 }
