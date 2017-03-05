@@ -24,31 +24,51 @@ public class JPADocumentCatalog implements DocumentCatalog {
     @Override
     public DocumentSearchResults find(DocumentQuery documentQuery) {
         CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
-        CriteriaQuery<Document> criteriaQuery = criteriaBuilder.createQuery(Document.class);
+        DocumentSearchResults results = new DocumentSearchResults();
+
+        List<DocumentDto> dtos = queryDocuments(documentQuery, criteriaBuilder);
+        Long total = queryTotalCount(documentQuery, criteriaBuilder);
+
+        results.setPagesCount(total / documentQuery.getPerPage() + (total % documentQuery.getPerPage() == 0 ? 0 : 1));
+        results.setDocuments(dtos);
+        results.setPerPage(documentQuery.getPerPage());
+        results.setPageNumber(documentQuery.getPageNumber());
+        return results;
+    }
+
+    private Long queryTotalCount(DocumentQuery documentQuery, CriteriaBuilder criteriaBuilder) {
         CriteriaQuery<Long> countCriteriaQuery = criteriaBuilder.createQuery(Long.class);
-        Root<Document> root = criteriaQuery.from(Document.class);
         Root<Document> countRoot = countCriteriaQuery.from(Document.class);
+        Set<Predicate> countPredicates = createPredicates(documentQuery, criteriaBuilder, countRoot);
         countCriteriaQuery.select(criteriaBuilder.count(countRoot));
+        countCriteriaQuery.where(countPredicates.toArray(new Predicate[]{}));
+        Query countQuery = entityManager.createQuery(countCriteriaQuery);
+        return (Long) countQuery.getSingleResult();
+    }
+
+    private List<DocumentDto> queryDocuments(DocumentQuery documentQuery, CriteriaBuilder criteriaBuilder) {
+        CriteriaQuery<Document> criteriaQuery = criteriaBuilder.createQuery(Document.class);
+        Root<Document> root = criteriaQuery.from(Document.class);
         root.fetch("confirmations", JoinType.LEFT);
         Set<Predicate> predicates = createPredicates(documentQuery, criteriaBuilder, root);
         criteriaQuery.where(predicates.toArray(new Predicate[]{}));
-        countCriteriaQuery.where(predicates.toArray(new Predicate[]{}));
         Query query = entityManager.createQuery(criteriaQuery);
         query.setMaxResults(documentQuery.getPerPage());
-        query.setFirstResult((documentQuery.getPageNumber() - 1) * documentQuery.getPerPage());
+        query.setFirstResult(getFirstResultOffset(documentQuery));
         List<Document> documents = query.getResultList();
-        DocumentSearchResults results = new DocumentSearchResults();
+        return getDocumentDtos(documents);
+    }
+
+    private List<DocumentDto> getDocumentDtos(List<Document> documents) {
         List<DocumentDto> dtos = new LinkedList<>();
         for (Document document : documents) {
             dtos.add(createDocumentDto(document));
         }
-        results.setDocuments(dtos);
-        results.setPerPage(documentQuery.getPerPage());
-        results.setPageNumber(documentQuery.getPageNumber());
-        Query countQuery = entityManager.createQuery(countCriteriaQuery);
-        Long total = (Long) countQuery.getSingleResult();
-        results.setPagesCount(total / documentQuery.getPerPage() + (total % documentQuery.getPerPage() == 0 ? 0 : 1));
-        return results;
+        return dtos;
+    }
+
+    private int getFirstResultOffset(DocumentQuery documentQuery) {
+        return (documentQuery.getPageNumber() - 1) * documentQuery.getPerPage();
     }
 
     private Set<Predicate> createPredicates(DocumentQuery documentQuery, CriteriaBuilder criteriaBuilder, Root<Document> root) {
