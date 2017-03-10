@@ -3,21 +3,23 @@ package pl.com.bottega.dms.ui;
 import org.springframework.web.bind.annotation.*;
 import pl.com.bottega.dms.application.*;
 import pl.com.bottega.dms.model.DocumentNumber;
-import pl.com.bottega.dms.model.commands.ChangeDocumentCommand;
-import pl.com.bottega.dms.model.commands.CreateDocumentCommand;
-import pl.com.bottega.dms.model.commands.PublishDocumentCommand;
+import pl.com.bottega.dms.model.commands.*;
 
 @RestController
 @RequestMapping("/documents")
 public class DocumentController {
 
     private DocumentFlowProcess documentFlowProcess;
+    private ReadingConfirmator readingConfirmator;
     private DocumentCatalog documentCatalog;
 
     public DocumentController(DocumentFlowProcess documentFlowProcess,
-                              DocumentCatalog documentCatalog) {
+                              DocumentCatalog documentCatalog,
+                              ReadingConfirmator readingConfirmator
+    ) {
         this.documentFlowProcess = documentFlowProcess;
         this.documentCatalog = documentCatalog;
+        this.readingConfirmator = readingConfirmator;
     }
 
     @RequestMapping(method = RequestMethod.POST)
@@ -41,10 +43,32 @@ public class DocumentController {
         return documentCatalog.find(documentQuery);
     }
 
+    @PostMapping("/{documentNumber}/verification")
+    public void verify(@PathVariable String documentNumber) {
+        documentFlowProcess.verify(new DocumentNumber(documentNumber));
+    }
+
     @PostMapping("/{documentNumber}/publication")
     public void publish(@PathVariable String documentNumber, @RequestBody PublishDocumentCommand cmd) {
         cmd.setNumber(documentNumber);
         documentFlowProcess.publish(cmd);
+    }
+
+    @DeleteMapping("/{documentNumber}/archivization")
+    public void archive(@PathVariable String documentNumber) {
+        documentFlowProcess.archive(new DocumentNumber(documentNumber));
+    }
+
+    @PostMapping("/{documentNumber}/confirmation")
+    public void confirm(@PathVariable String documentNumber, @RequestBody ConfirmDocumentCommand cmd) {
+        cmd.setNumber(documentNumber);
+        readingConfirmator.confirm(cmd);
+    }
+
+    @PostMapping("/{documentNumber}/proxy-confirmation")
+    public void confirmFor(@PathVariable String documentNumber, @RequestBody ConfirmForDocumentCommand cmd) {
+        cmd.setNumber(documentNumber);
+        readingConfirmator.confirmFor(cmd);
     }
 
 }
