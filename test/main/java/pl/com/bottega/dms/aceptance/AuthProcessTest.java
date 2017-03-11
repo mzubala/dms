@@ -6,10 +6,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
-import pl.com.bottega.dms.application.user.AuthProcess;
-import pl.com.bottega.dms.application.user.AuthResult;
-import pl.com.bottega.dms.application.user.CreateAccountCommand;
-import pl.com.bottega.dms.application.user.LoginCommand;
+import pl.com.bottega.dms.application.user.*;
+import pl.com.bottega.dms.model.EmployeeId;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -20,6 +18,9 @@ public class AuthProcessTest {
 
     @Autowired
     private AuthProcess authProcess;
+
+    @Autowired
+    private CurrentUser currentUser;
 
     @Test
     public void shouldCreateAccountAndAllowLogin() {
@@ -57,6 +58,60 @@ public class AuthProcessTest {
         //then
         assertThat(loginResult.isSuccess()).isFalse();
         assertThat(loginResult.getErrorMessage()).isEqualTo("invalid login or password");
+    }
+
+    @Test
+    public void shouldNotAllowDuplicateEmployeeId() {
+        // given
+        CreateAccountCommand cmd = new CreateAccountCommand();
+        cmd.setUserName("janek");
+        cmd.setEmployeeId(1L);
+        cmd.setPassword("xxx");
+        authProcess.createAccount(cmd);
+
+        //when
+        AuthResult result = authProcess.createAccount(cmd);
+
+        //then
+        assertThat(result.isSuccess()).isFalse();
+        assertThat(result.getErrorMessage()).isEqualTo("employee already registered");
+    }
+
+    @Test
+    public void shouldNotAllowDuplicateUserName() {
+        // given
+        CreateAccountCommand cmd = new CreateAccountCommand();
+        cmd.setUserName("janek");
+        cmd.setEmployeeId(1L);
+        cmd.setPassword("xxx");
+        authProcess.createAccount(cmd);
+
+        //when
+        cmd.setEmployeeId(2L);
+        AuthResult result = authProcess.createAccount(cmd);
+
+        //then
+        assertThat(result.isSuccess()).isFalse();
+        assertThat(result.getErrorMessage()).isEqualTo("user name is occupied");
+    }
+
+    @Test
+    public void shouldRememberCurrentEmployeeId() {
+        // given
+        CreateAccountCommand cmd = new CreateAccountCommand();
+        cmd.setUserName("janek");
+        cmd.setEmployeeId(1L);
+        cmd.setPassword("xxx");
+        authProcess.createAccount(cmd);
+
+        // when
+        LoginCommand loginCommand = new LoginCommand();
+        loginCommand.setLogin("janek");
+        loginCommand.setPassword("xxx");
+        authProcess.login(loginCommand);
+
+        //then
+        assertThat(currentUser.getEmployeeId()).isEqualTo(new EmployeeId(1L));
     }
 
 }

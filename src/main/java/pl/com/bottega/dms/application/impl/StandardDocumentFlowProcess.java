@@ -2,6 +2,8 @@ package pl.com.bottega.dms.application.impl;
 
 import org.springframework.transaction.annotation.Transactional;
 import pl.com.bottega.dms.application.DocumentFlowProcess;
+import pl.com.bottega.dms.application.user.AuthRequiredException;
+import pl.com.bottega.dms.application.user.CurrentUser;
 import pl.com.bottega.dms.model.Document;
 import pl.com.bottega.dms.model.DocumentNumber;
 import pl.com.bottega.dms.model.DocumentRepository;
@@ -18,16 +20,20 @@ public class StandardDocumentFlowProcess implements DocumentFlowProcess {
     private NumberGenerator numberGenerator;
     private PrintCostCalculator printCostCalculator;
     private DocumentRepository documentRepository;
+    private CurrentUser currentUser;
 
     public StandardDocumentFlowProcess(NumberGenerator numberGenerator, PrintCostCalculator printCostCalculator,
-                                       DocumentRepository documentRepository) {
+                                       DocumentRepository documentRepository, CurrentUser currentUser) {
         this.numberGenerator = numberGenerator;
         this.printCostCalculator = printCostCalculator;
         this.documentRepository = documentRepository;
+        this.currentUser = currentUser;
     }
 
     @Override
     public DocumentNumber create(CreateDocumentCommand cmd) {
+        if(currentUser.getEmployeeId() == null)
+            throw new AuthRequiredException();
         Document document = new Document(cmd, numberGenerator);
         documentRepository.put(document);
         return document.getNumber();

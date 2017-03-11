@@ -1,5 +1,6 @@
 package pl.com.bottega.dms.aceptance;
 
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,6 +10,9 @@ import pl.com.bottega.dms.DmsApplication;
 import pl.com.bottega.dms.application.DocumentCatalog;
 import pl.com.bottega.dms.application.DocumentDto;
 import pl.com.bottega.dms.application.DocumentFlowProcess;
+import pl.com.bottega.dms.application.user.AuthProcess;
+import pl.com.bottega.dms.application.user.CreateAccountCommand;
+import pl.com.bottega.dms.application.user.LoginCommand;
 import pl.com.bottega.dms.model.DocumentNumber;
 import pl.com.bottega.dms.model.EmployeeId;
 import pl.com.bottega.dms.model.commands.ChangeDocumentCommand;
@@ -28,6 +32,23 @@ public class DocumentFlowTest {
 
     @Autowired
     private DocumentCatalog documentCatalog;
+
+    @Autowired
+    private AuthProcess authProcess;
+
+    @Before
+    public void authenticate() {
+        CreateAccountCommand cmd = new CreateAccountCommand();
+        cmd.setUserName("janek");
+        cmd.setEmployeeId(1L);
+        cmd.setPassword("xxx");
+        authProcess.createAccount(cmd);
+
+        LoginCommand loginCommand = new LoginCommand();
+        loginCommand.setLogin("janek");
+        loginCommand.setPassword("xxx");
+        authProcess.login(loginCommand);
+    }
 
     @Test
     public void shouldCreateDocument() {
