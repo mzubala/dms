@@ -1,9 +1,10 @@
 package pl.com.bottega.dms.model;
 
 import javax.persistence.Embeddable;
+import java.io.Serializable;
 
 @Embeddable
-public class EmployeeId {
+public class EmployeeId implements Serializable {
 
     private Long id;
 
