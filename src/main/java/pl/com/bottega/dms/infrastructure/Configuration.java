@@ -6,6 +6,9 @@ import pl.com.bottega.dms.application.DocumentFlowProcess;
 import pl.com.bottega.dms.application.ReadingConfirmator;
 import pl.com.bottega.dms.application.impl.StandardDocumentFlowProcess;
 import pl.com.bottega.dms.application.impl.StandardReadingConfirmator;
+import pl.com.bottega.dms.application.user.AuthProcess;
+import pl.com.bottega.dms.application.user.UserRepository;
+import pl.com.bottega.dms.application.user.impl.StandardAuthProcess;
 import pl.com.bottega.dms.model.DocumentRepository;
 import pl.com.bottega.dms.model.numbers.ISONumberGenerator;
 import pl.com.bottega.dms.model.numbers.NumberGenerator;
@@ -46,6 +49,11 @@ public class Configuration {
     @Bean
     public ReadingConfirmator readingConfirmator(DocumentRepository repo) {
         return new StandardReadingConfirmator(repo);
+    }
+
+    @Bean
+    public AuthProcess authProcess(UserRepository userRepository) {
+        return new StandardAuthProcess(userRepository);
     }
 
 }
