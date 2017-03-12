@@ -1,4 +1,4 @@
-package pl.com.bottega.dms.infrastructure;
+package pl.com.bottega.dms.infrastructure.aspects;
 
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;

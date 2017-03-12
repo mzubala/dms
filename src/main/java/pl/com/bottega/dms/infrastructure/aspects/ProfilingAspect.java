@@ -1,4 +1,4 @@
-package pl.com.bottega.dms.infrastructure;
+package pl.com.bottega.dms.infrastructure.aspects;
 
 import org.apache.log4j.Logger;
 import org.aspectj.lang.ProceedingJoinPoint;
