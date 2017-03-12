@@ -1,6 +1,7 @@
 package pl.com.bottega.dms.infrastructure;
 
 import pl.com.bottega.dms.application.*;
+import pl.com.bottega.dms.application.user.RequiresAuth;
 import pl.com.bottega.dms.model.Confirmation;
 import pl.com.bottega.dms.model.Document;
 import pl.com.bottega.dms.model.DocumentNumber;
@@ -16,6 +17,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
+@RequiresAuth
 public class JPADocumentCatalog implements DocumentCatalog {
 
     @PersistenceContext

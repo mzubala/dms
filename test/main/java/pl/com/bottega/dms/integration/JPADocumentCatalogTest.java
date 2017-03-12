@@ -1,5 +1,6 @@
 package pl.com.bottega.dms.integration;
 
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 import pl.com.bottega.dms.application.DocumentQuery;
 import pl.com.bottega.dms.application.DocumentSearchResults;
 import pl.com.bottega.dms.infrastructure.JPADocumentCatalog;
+import pl.com.bottega.dms.shared.AuthHelper;
 
 import java.time.LocalDateTime;
 
@@ -22,6 +24,14 @@ public class JPADocumentCatalogTest {
     @Autowired
     private JPADocumentCatalog catalog;
     //private JPQLDocumentCatalog catalog;
+
+    @Autowired
+    private AuthHelper authHelper;
+
+    @Before
+    public void authenticate() {
+        authHelper.authenticate();
+    }
 
     @Test
     @Sql("/fixtures/documentByPhrase.sql")
