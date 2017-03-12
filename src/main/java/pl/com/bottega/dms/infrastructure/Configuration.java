@@ -27,7 +27,8 @@ public class Configuration {
                                                    PrintCostCalculator printCostCalculator,
                                                    DocumentRepository documentRepository, CurrentUser currentUser
     ) {
-        return new StandardDocumentFlowProcess(numberGenerator, printCostCalculator, documentRepository);
+        return new StandardDocumentFlowProcess(numberGenerator, printCostCalculator,
+                documentRepository, currentUser);
     }
 
     @Bean

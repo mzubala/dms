@@ -5,7 +5,7 @@ import pl.com.bottega.dms.model.EmployeeId;
 import java.util.Collection;
 import java.util.List;
 
-public class PublishDocumentCommand {
+public class PublishDocumentCommand implements EmployeeAware {
     private EmployeeId employeeId;
     private Collection<EmployeeId> recipients;
     private String number;

@@ -2,7 +2,7 @@ package pl.com.bottega.dms.model.commands;
 
 import pl.com.bottega.dms.model.EmployeeId;
 
-public class ConfirmForDocumentCommand {
+public class ConfirmForDocumentCommand implements EmployeeAware {
     private EmployeeId employeeId;
     private EmployeeId confirmingEmployeeId;
     private String number;

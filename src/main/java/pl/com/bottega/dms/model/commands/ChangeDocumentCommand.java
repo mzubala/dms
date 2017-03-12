@@ -3,7 +3,7 @@ package pl.com.bottega.dms.model.commands;
 import pl.com.bottega.dms.model.DocumentNumber;
 import pl.com.bottega.dms.model.EmployeeId;
 
-public class ChangeDocumentCommand {
+public class ChangeDocumentCommand implements EmployeeAware {
     private String title;
     private String content;
     private EmployeeId employeeId;

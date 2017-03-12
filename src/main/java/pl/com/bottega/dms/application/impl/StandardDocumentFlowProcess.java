@@ -22,12 +22,14 @@ public class StandardDocumentFlowProcess implements DocumentFlowProcess {
     private NumberGenerator numberGenerator;
     private PrintCostCalculator printCostCalculator;
     private DocumentRepository documentRepository;
+    private CurrentUser currentUser;
 
     public StandardDocumentFlowProcess(NumberGenerator numberGenerator, PrintCostCalculator printCostCalculator,
-                                       DocumentRepository documentRepository) {
+                                       DocumentRepository documentRepository, CurrentUser currentUser) {
         this.numberGenerator = numberGenerator;
         this.printCostCalculator = printCostCalculator;
         this.documentRepository = documentRepository;
+        this.currentUser = currentUser;
     }
 
     @Override
@@ -47,7 +49,7 @@ public class StandardDocumentFlowProcess implements DocumentFlowProcess {
     @Override
     public void verify(DocumentNumber documentNumber) {
         Document document = documentRepository.get(documentNumber);
-        document.verify(new EmployeeId(1L));
+        document.verify(currentUser.getEmployeeId());
     }
 
     @Override
@@ -60,6 +62,6 @@ public class StandardDocumentFlowProcess implements DocumentFlowProcess {
     @Override
     public void archive(DocumentNumber documentNumber) {
         Document document = documentRepository.get(documentNumber);
-        document.archive(new EmployeeId(1L));
+        document.archive(currentUser.getEmployeeId());
     }
 }
