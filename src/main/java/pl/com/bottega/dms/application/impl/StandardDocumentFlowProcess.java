@@ -7,6 +7,7 @@ import pl.com.bottega.dms.application.DocumentFlowProcess;
 import pl.com.bottega.dms.application.user.CurrentUser;
 import pl.com.bottega.dms.application.user.RequiresAuth;
 import pl.com.bottega.dms.model.Document;
+import pl.com.bottega.dms.model.DocumentFactory;
 import pl.com.bottega.dms.model.DocumentNumber;
 import pl.com.bottega.dms.model.DocumentRepository;
 import pl.com.bottega.dms.model.commands.ChangeDocumentCommand;
@@ -19,16 +20,16 @@ import pl.com.bottega.dms.model.printing.PrintCostCalculator;
 @Transactional
 public class StandardDocumentFlowProcess implements DocumentFlowProcess {
 
-    private NumberGenerator numberGenerator;
+    private DocumentFactory documentFactory;
     private PrintCostCalculator printCostCalculator;
     private DocumentRepository documentRepository;
     private CurrentUser currentUser;
     private ApplicationEventPublisher publisher;
 
-    public StandardDocumentFlowProcess(NumberGenerator numberGenerator, PrintCostCalculator printCostCalculator,
+    public StandardDocumentFlowProcess(DocumentFactory documentFactory, PrintCostCalculator printCostCalculator,
                                        DocumentRepository documentRepository, CurrentUser currentUser,
                                        ApplicationEventPublisher publisher) {
-        this.numberGenerator = numberGenerator;
+        this.documentFactory = documentFactory;
         this.printCostCalculator = printCostCalculator;
         this.documentRepository = documentRepository;
         this.currentUser = currentUser;
@@ -38,7 +39,7 @@ public class StandardDocumentFlowProcess implements DocumentFlowProcess {
     @Override
     @RequiresAuth("QUALITY_STAFF")
     public DocumentNumber create(CreateDocumentCommand cmd) {
-        Document document = new Document(cmd, numberGenerator);
+        Document document = documentFactory.create(cmd);
         documentRepository.put(document);
         return document.getNumber();
     }

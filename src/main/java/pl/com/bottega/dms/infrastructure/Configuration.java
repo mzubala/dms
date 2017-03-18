@@ -20,6 +20,7 @@ import pl.com.bottega.dms.application.user.CurrentUser;
 import pl.com.bottega.dms.application.user.UserRepository;
 import pl.com.bottega.dms.application.user.impl.StandardAuthProcess;
 import pl.com.bottega.dms.application.user.impl.StandardCurrentUser;
+import pl.com.bottega.dms.model.DocumentFactory;
 import pl.com.bottega.dms.model.DocumentRepository;
 import pl.com.bottega.dms.model.numbers.ISONumberGenerator;
 import pl.com.bottega.dms.model.numbers.NumberGenerator;
@@ -33,13 +34,13 @@ import java.util.concurrent.Executor;
 public class Configuration extends AsyncConfigurerSupport {
 
     @Bean
-    public DocumentFlowProcess documentFlowProcess(NumberGenerator numberGenerator,
+    public DocumentFlowProcess documentFlowProcess(DocumentFactory documentFactory,
                                                    PrintCostCalculator printCostCalculator,
                                                    DocumentRepository documentRepository,
                                                    CurrentUser currentUser,
                                                    ApplicationEventPublisher publisher
     ) {
-        return new StandardDocumentFlowProcess(numberGenerator, printCostCalculator,
+        return new StandardDocumentFlowProcess(documentFactory, printCostCalculator,
                 documentRepository, currentUser, publisher);
     }
 
@@ -77,6 +78,11 @@ public class Configuration extends AsyncConfigurerSupport {
     @Scope(value = "session", proxyMode = ScopedProxyMode.INTERFACES)
     public CurrentUser currentUser() {
         return new StandardCurrentUser();
+    }
+
+    @Bean
+    public DocumentFactory documentFactory(NumberGenerator numberGenerator) {
+        return new DocumentFactory(numberGenerator);
     }
 
     @Bean

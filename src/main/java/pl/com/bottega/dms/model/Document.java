@@ -47,8 +47,8 @@ public class Document {
     Document() {
     }
 
-    public Document(CreateDocumentCommand cmd, NumberGenerator numberGenerator) {
-        this.number = numberGenerator.generate();
+    public Document(CreateDocumentCommand cmd, DocumentNumber number) {
+        this.number = number;
         this.status = DRAFT;
         this.title = cmd.getTitle();
         this.createdAt = LocalDateTime.now();
