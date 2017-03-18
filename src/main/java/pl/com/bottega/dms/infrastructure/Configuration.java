@@ -4,6 +4,9 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Scope;
 import org.springframework.context.annotation.ScopedProxyMode;
+import org.springframework.scheduling.annotation.AsyncConfigurerSupport;
+import org.springframework.scheduling.annotation.EnableAsync;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
@@ -23,8 +26,11 @@ import pl.com.bottega.dms.model.numbers.NumberGenerator;
 import pl.com.bottega.dms.model.printing.PrintCostCalculator;
 import pl.com.bottega.dms.model.printing.RGBPrintCostCalculator;
 
+import java.util.concurrent.Executor;
+
 @org.springframework.context.annotation.Configuration
-public class Configuration {
+@EnableAsync
+public class Configuration extends AsyncConfigurerSupport {
 
     @Bean
     public DocumentFlowProcess documentFlowProcess(NumberGenerator numberGenerator,
@@ -82,5 +88,17 @@ public class Configuration {
             }
         };
     }
+
+    @Override
+    public Executor getAsyncExecutor() {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        executor.setCorePoolSize(2);
+        executor.setMaxPoolSize(2);
+        executor.setQueueCapacity(500);
+        executor.setThreadNamePrefix("DMS-Async-Executor");
+        executor.initialize();
+        return executor;
+    }
+
 
 }
