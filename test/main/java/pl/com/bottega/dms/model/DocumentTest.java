@@ -311,8 +311,8 @@ public class DocumentTest {
 
         //when
         ConfirmForDocumentCommand cmd = new ConfirmForDocumentCommand();
-        cmd.setConfirmingEmployeeId(new EmployeeId(2L));
-        cmd.setEmployeeId(new EmployeeId(1L));
+        cmd.setEmployeeId(new EmployeeId(2L));
+        cmd.setConfirmForEmployeeId(new EmployeeId(1L));
         document.confirmFor(cmd);
 
         //then
@@ -352,8 +352,8 @@ public class DocumentTest {
 
         //when
         ConfirmForDocumentCommand cmd = new ConfirmForDocumentCommand();
+        cmd.setConfirmForEmployeeId(new EmployeeId(1L));
         cmd.setEmployeeId(new EmployeeId(1L));
-        cmd.setConfirmingEmployeeId(new EmployeeId(1L));
         document.confirmFor(cmd);
     }
 

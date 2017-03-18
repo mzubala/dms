@@ -1,6 +1,8 @@
 package pl.com.bottega.dms.application.user;
 
-public class CreateAccountCommand {
+import pl.com.bottega.dms.model.commands.Validatable;
+
+public class CreateAccountCommand implements Validatable {
 
     private String userName;
     private Long employeeId;
@@ -28,5 +30,15 @@ public class CreateAccountCommand {
 
     public void setUserName(String userName) {
         this.userName = userName;
+    }
+
+    @Override
+    public void validate(ValidationErrors errors) {
+        if (userName == null || userName.isEmpty())
+            errors.add("userName", "can't be blank");
+        if (employeeId == null)
+            errors.add("employeeId", "can't be blank");
+        if (password == null || password.isEmpty())
+            errors.add("password", "can't be blank");
     }
 }

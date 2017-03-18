@@ -13,9 +13,13 @@ public class AuthHelper {
     private AuthProcess authProcess;
 
     public void authenticate() {
+        authenticate(1L);
+    }
+
+    public void authenticate(Long employeeId) {
         CreateAccountCommand cmd = new CreateAccountCommand();
         cmd.setUserName("janek");
-        cmd.setEmployeeId(1L);
+        cmd.setEmployeeId(employeeId);
         cmd.setPassword("xxx");
         authProcess.createAccount(cmd);
 

@@ -1,6 +1,8 @@
 package pl.com.bottega.dms.application.user;
 
-public class LoginCommand {
+import pl.com.bottega.dms.model.commands.Validatable;
+
+public class LoginCommand implements Validatable {
 
     private String login;
     private String password;
@@ -21,4 +23,11 @@ public class LoginCommand {
         this.password = password;
     }
 
+    @Override
+    public void validate(ValidationErrors errors) {
+        if(isEmpty(login))
+            errors.add("login", "can't be blank");
+        if(isEmpty(password))
+            errors.add("password", "can't be blank");
+    }
 }

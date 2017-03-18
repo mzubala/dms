@@ -100,8 +100,8 @@ public class Document {
     }
 
     public void confirmFor(ConfirmForDocumentCommand cmd) {
-        Confirmation confirmation = getConfirmation(cmd.getEmployeeId());
-        confirmation.confirmFor(cmd.getConfirmingEmployeeId());
+        Confirmation confirmation = getConfirmation(cmd.getConfirmForEmployeeId());
+        confirmation.confirmFor(cmd.getEmployeeId());
     }
 
     public DocumentStatus getStatus() {

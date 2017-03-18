@@ -37,14 +37,10 @@ public class ConfirmationTest {
     @Autowired
     private AuthHelper authHelper;
 
-    @Before
-    public void authenticate() {
-        authHelper.authenticate();
-    }
-
     @Test
     public void shouldConfirmDocument() {
         // given
+        authHelper.authenticate();
         DocumentNumber documentNumber = publishedDocument();
 
         //when
@@ -64,12 +60,12 @@ public class ConfirmationTest {
     @Test
     public void shouldConfirmDocumentForAnotherEmployee() {
         // given
+        authHelper.authenticate(0L);
         DocumentNumber documentNumber = publishedDocument();
 
         //when
         ConfirmForDocumentCommand confirmDocumentCommand = new ConfirmForDocumentCommand();
-        confirmDocumentCommand.setEmployeeId(new EmployeeId(1L));
-        confirmDocumentCommand.setConfirmingEmployeeId(new EmployeeId(2L));
+        confirmDocumentCommand.setConfirmForEmployeeId(new EmployeeId(1L));
         confirmDocumentCommand.setNumber(documentNumber.getNumber());
         readingConfirmator.confirmFor(confirmDocumentCommand);
 
@@ -79,7 +75,7 @@ public class ConfirmationTest {
         ConfirmationDto confirmationDto = dto.getConfirmations().get(0);
         assertThat(confirmationDto.isConfirmed()).isTrue();
         assertThat(confirmationDto.getOwnerEmployeeId()).isEqualTo(1L);
-        assertThat(confirmationDto.getProxyEmployeeId()).isEqualTo(2L);
+        assertThat(confirmationDto.getProxyEmployeeId()).isEqualTo(0L);
     }
 
     private DocumentNumber publishedDocument() {

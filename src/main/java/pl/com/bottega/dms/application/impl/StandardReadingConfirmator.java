@@ -10,7 +10,6 @@ import pl.com.bottega.dms.model.commands.ConfirmDocumentCommand;
 import pl.com.bottega.dms.model.commands.ConfirmForDocumentCommand;
 
 @Transactional
-@RequiresAuth
 public class StandardReadingConfirmator implements ReadingConfirmator {
 
     private DocumentRepository documentRepository;
@@ -20,6 +19,7 @@ public class StandardReadingConfirmator implements ReadingConfirmator {
     }
 
     @Override
+    @RequiresAuth("STAFF")
     public void confirm(ConfirmDocumentCommand cmd) {
         DocumentNumber documentNumber = new DocumentNumber(cmd.getNumber());
         Document document = documentRepository.get(documentNumber);
@@ -27,6 +27,7 @@ public class StandardReadingConfirmator implements ReadingConfirmator {
     }
 
     @Override
+    @RequiresAuth("QUALITY_STAFF")
     public void confirmFor(ConfirmForDocumentCommand cmd) {
         DocumentNumber documentNumber = new DocumentNumber(cmd.getNumber());
         Document document = documentRepository.get(documentNumber);

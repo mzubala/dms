@@ -6,6 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import pl.com.bottega.dms.application.user.AuthRequiredException;
+import pl.com.bottega.dms.model.DocumentNotFoundException;
 import pl.com.bottega.dms.model.DocumentStatusException;
 import pl.com.bottega.dms.model.commands.CommandInvalidException;
 import pl.com.bottega.dms.model.commands.Validatable;
@@ -43,6 +44,17 @@ public class ErrorHandlers {
                 ex.getErrors(),
                 headers,
                 HttpStatus.UNPROCESSABLE_ENTITY
+        );
+    }
+
+    @ExceptionHandler(DocumentNotFoundException.class)
+    public ResponseEntity<String> handleDocumentNotFoundException(DocumentNotFoundException ex) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.set(HttpHeaders.CONTENT_TYPE, "application/json");
+        return new ResponseEntity<String>(
+                String.format("{\"error\": \"%s\"}", ex.getMessage()),
+                headers,
+                HttpStatus.NOT_FOUND
         );
     }
 
