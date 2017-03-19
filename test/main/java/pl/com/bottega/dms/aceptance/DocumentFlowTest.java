@@ -22,6 +22,7 @@ import pl.com.bottega.dms.model.commands.CreateDocumentCommand;
 import pl.com.bottega.dms.model.commands.PublishDocumentCommand;
 import pl.com.bottega.dms.shared.AuthHelper;
 
+import java.time.LocalDateTime;
 import java.util.Arrays;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -104,6 +105,7 @@ public class DocumentFlowTest {
     public void shouldPublishDocument() {
         //given
         DocumentNumber documentNumber = createDocument();
+        updateDocument(documentNumber);
         documentFlowProcess.verify(documentNumber);
 
         //when
@@ -122,6 +124,15 @@ public class DocumentFlowTest {
         cmd.setTitle("test");
         cmd.setDocumentType(DocumentType.MANUAL);
         return documentFlowProcess.create(cmd);
+    }
+
+    private void updateDocument(DocumentNumber nr) {
+        ChangeDocumentCommand cmd = new ChangeDocumentCommand();
+        cmd.setNumber(nr.getNumber());
+        cmd.setContent("blah blah");
+        cmd.setExpiresAt(LocalDateTime.now().plusDays(365L));
+        cmd.setTitle("test");
+        documentFlowProcess.change(cmd);
     }
 
 }

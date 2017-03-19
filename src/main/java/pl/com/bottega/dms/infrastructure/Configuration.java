@@ -1,8 +1,6 @@
 package pl.com.bottega.dms.infrastructure;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.SpringApplication;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Scope;
@@ -26,9 +24,10 @@ import pl.com.bottega.dms.application.user.impl.StandardAuthProcess;
 import pl.com.bottega.dms.application.user.impl.StandardCurrentUser;
 import pl.com.bottega.dms.model.DocumentFactory;
 import pl.com.bottega.dms.model.DocumentRepository;
+import pl.com.bottega.dms.model.DocumentStatus;
 import pl.com.bottega.dms.model.numbers.*;
-import pl.com.bottega.dms.model.printing.PrintCostCalculator;
-import pl.com.bottega.dms.model.printing.RGBPrintCostCalculator;
+import pl.com.bottega.dms.model.printing.*;
+import pl.com.bottega.dms.model.validation.*;
 
 import java.util.concurrent.Executor;
 
@@ -41,42 +40,51 @@ public class Configuration extends AsyncConfigurerSupport {
                                                    PrintCostCalculator printCostCalculator,
                                                    DocumentRepository documentRepository,
                                                    CurrentUser currentUser,
-                                                   ApplicationEventPublisher publisher
+                                                   ApplicationEventPublisher publisher,
+                                                   DocumentValidator validator
     ) {
         return new StandardDocumentFlowProcess(documentFactory, printCostCalculator,
-                documentRepository, currentUser, publisher);
+                documentRepository, currentUser, publisher, validator);
     }
 
     @Bean
     public NumberGenerator numberGenerator(
             @Value("${dms.qualitySystem}") String qualitySystem,
             Environment env
-            ) {
+    ) {
         NumberGenerator base;
-        if(qualitySystem.equals("ISO"))
+        if (qualitySystem.equals("ISO"))
             base = new ISONumberGenerator();
-        else if(qualitySystem.equals("QEP"))
+        else if (qualitySystem.equals("QEP"))
             base = new QEPNumberGenerator();
         else
             throw new IllegalArgumentException("Uknown quality system");
-        if(hasProfile("audit", env)) {
+        if (hasProfile("audit", env)) {
             base = new AuditNumberGenerator(base);
         }
-        if(hasProfile("demo", env))
+        if (hasProfile("demo", env))
             base = new DemoNumberGenerator(base);
         return base;
     }
 
     private boolean hasProfile(String profile, Environment env) {
-        for(String activeProfile : env.getActiveProfiles())
-            if(activeProfile.equals(profile))
+        for (String activeProfile : env.getActiveProfiles())
+            if (activeProfile.equals(profile))
                 return true;
         return false;
     }
 
     @Bean
-    public PrintCostCalculator printCostCalculator() {
-        return new RGBPrintCostCalculator();
+    public PrintCostCalculator printCostCalculator(@Value("${dms.printType}") String printType) {
+        PrintCostCalculator calculator = null;
+        if (printType == null || printType.equals("BW"))
+            calculator = new BWPrintCostCalculator();
+        else if (printType.equals("RGB"))
+            calculator = new RGBPrintCostCalculator();
+        else
+            throw new IllegalArgumentException("Invalid print type configuration");
+        calculator = new ManualPrintCostCalculator(new PagesCountPrintCostCalculator(calculator));
+        return calculator;
     }
 
     @Bean
@@ -131,5 +139,34 @@ public class Configuration extends AsyncConfigurerSupport {
         return executor;
     }
 
+    @Bean
+    public DocumentValidator documentValidator(@Value("${dms.qualitySystem}") String qualitySystem) {
+        if (qualitySystem.equals("ISO")) {
+            return isoDocumentValidator();
+        }
+        else if (qualitySystem.equals("QEP")) {
+            return qepDocumentValidator();
+        }
+        else
+            throw new IllegalArgumentException("Invalid quality system");
+    }
+
+    private DocumentValidator qepDocumentValidator() {
+        DocumentValidator v1 = new VerifiedAuthorValidator();
+        DocumentValidator v2 = new ExpiresAtValidator(DocumentStatus.VERIFIED);
+        DocumentValidator v3 = new PublishedContentValidator();
+        v1.setNext(v2);
+        v2.setNext(v3);
+        v3.setNext(new AgreeableDocumentValidator());
+        return v1;
+    }
+
+    private DocumentValidator isoDocumentValidator() {
+        DocumentValidator v1 = new VerifiedNumberValidator();
+        DocumentValidator v2 = new ExpiresAtValidator(DocumentStatus.PUBLISHED);
+        v1.setNext(v2);
+        v2.setNext(new AgreeableDocumentValidator());
+        return v1;
+    }
 
 }

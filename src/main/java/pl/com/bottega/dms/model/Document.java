@@ -16,6 +16,8 @@ import static pl.com.bottega.dms.model.DocumentStatus.*;
 @Entity
 public class Document {
 
+    private static final int CHARS_COUNT_PER_PAGE = 1800;
+
     @EmbeddedId
     private DocumentNumber number;
     @Enumerated(EnumType.STRING)
@@ -26,6 +28,9 @@ public class Document {
     private LocalDateTime verifiedAt;
     private LocalDateTime publishedAt;
     private LocalDateTime changedAt;
+
+    private LocalDateTime expiresAt;
+
     @Embedded
     @AttributeOverride(name = "id", column = @Column(name = "creatorId"))
     private EmployeeId creatorId;
@@ -39,7 +44,6 @@ public class Document {
     @AttributeOverride(name = "id", column = @Column(name = "publisherId"))
     private EmployeeId publisherId;
     private BigDecimal printCost;
-
     @Enumerated(EnumType.STRING)
     private DocumentType documentType;
 
@@ -68,6 +72,7 @@ public class Document {
         this.status = DRAFT;
         this.changedAt = LocalDateTime.now();
         this.editorId = cmd.getEmployeeId();
+        this.expiresAt = cmd.getExpiresAt();
     }
 
     public void verify(EmployeeId employeeId) {
@@ -182,5 +187,16 @@ public class Document {
 
     public DocumentType getType() {
         return documentType;
+    }
+
+    public int getPagesCount() {
+        if (content == null)
+            return 0;
+        return content.length() / CHARS_COUNT_PER_PAGE +
+                (content.length() % CHARS_COUNT_PER_PAGE == 0 ? 0 : 1);
+    }
+
+    public LocalDateTime getExpiresAt() {
+        return expiresAt;
     }
 }
