@@ -132,6 +132,7 @@ public class JPADocumentCatalog implements DocumentCatalog {
         documentDto.setContent(document.getContent());
         documentDto.setStatus(document.getStatus().name());
         documentDto.setCreatedAt(document.getCreatedAt());
+        documentDto.setDocumentType(document.getType().name());
         List<ConfirmationDto> confirmationDtos = new LinkedList<>();
         for (Confirmation confirmation : document.getConfirmations()) {
             ConfirmationDto dto = createConfirmationDto(confirmation);

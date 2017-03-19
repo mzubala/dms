@@ -1,5 +1,7 @@
 package pl.com.bottega.dms.application;
 
+import pl.com.bottega.dms.model.DocumentType;
+
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -13,11 +15,13 @@ public class DocumentDto {
 
     private String status;
 
+    private String documentType;
+
     private List<ConfirmationDto> confirmations;
+
     public String getTitle() {
         return title;
     }
-
     public void setTitle(String title) {
         this.title = title;
     }
@@ -60,5 +64,13 @@ public class DocumentDto {
 
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public String getDocumentType() {
+        return documentType;
+    }
+
+    public void setDocumentType(String documentType) {
+        this.documentType = documentType;
     }
 }

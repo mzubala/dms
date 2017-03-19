@@ -40,6 +40,9 @@ public class Document {
     private EmployeeId publisherId;
     private BigDecimal printCost;
 
+    @Enumerated(EnumType.STRING)
+    private DocumentType documentType;
+
     @OneToMany(cascade = CascadeType.ALL)
     @JoinColumn(name = "documentNumber")
     private Set<Confirmation> confirmations;
@@ -54,6 +57,7 @@ public class Document {
         this.createdAt = LocalDateTime.now();
         this.creatorId = cmd.getEmployeeId();
         this.confirmations = new HashSet<>();
+        this.documentType = cmd.getDocumentType();
     }
 
     public void change(ChangeDocumentCommand cmd) {
@@ -174,5 +178,9 @@ public class Document {
                 return confirmation;
         }
         throw new DocumentStatusException(String.format("No confirmation for %s", employeeId));
+    }
+
+    public DocumentType getType() {
+        return documentType;
     }
 }

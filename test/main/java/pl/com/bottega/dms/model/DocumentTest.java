@@ -46,6 +46,13 @@ public class DocumentTest {
     }
 
     @Test
+    public void shouldSetDocumentTyoeOnCreate() {
+        Document document = given().newDocument();
+
+        assertEquals(DocumentType.QUALITY_BOOK, document.getType());
+    }
+
+    @Test
     public void shouldChangeTitleAndContent() {
         Document document = given().newDocument();
 
@@ -379,6 +386,7 @@ public class DocumentTest {
             CreateDocumentCommand cmd = new CreateDocumentCommand();
             cmd.setTitle("test title");
             cmd.setEmployeeId(employeeId);
+            cmd.setDocumentType(DocumentType.QUALITY_BOOK);
             return new Document(cmd, anyDocumentNumber());
         }
 
