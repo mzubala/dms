@@ -1,9 +1,13 @@
 package pl.com.bottega.dms.infrastructure;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.SpringApplication;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Scope;
 import org.springframework.context.annotation.ScopedProxyMode;
+import org.springframework.core.env.Environment;
 import org.springframework.scheduling.annotation.AsyncConfigurerSupport;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
@@ -22,8 +26,7 @@ import pl.com.bottega.dms.application.user.impl.StandardAuthProcess;
 import pl.com.bottega.dms.application.user.impl.StandardCurrentUser;
 import pl.com.bottega.dms.model.DocumentFactory;
 import pl.com.bottega.dms.model.DocumentRepository;
-import pl.com.bottega.dms.model.numbers.ISONumberGenerator;
-import pl.com.bottega.dms.model.numbers.NumberGenerator;
+import pl.com.bottega.dms.model.numbers.*;
 import pl.com.bottega.dms.model.printing.PrintCostCalculator;
 import pl.com.bottega.dms.model.printing.RGBPrintCostCalculator;
 
@@ -45,8 +48,30 @@ public class Configuration extends AsyncConfigurerSupport {
     }
 
     @Bean
-    public NumberGenerator numberGenerator() {
-        return new ISONumberGenerator();
+    public NumberGenerator numberGenerator(
+            @Value("${dms.qualitySystem}") String qualitySystem,
+            Environment env
+            ) {
+        NumberGenerator base;
+        if(qualitySystem.equals("ISO"))
+            base = new ISONumberGenerator();
+        else if(qualitySystem.equals("QEP"))
+            base = new QEPNumberGenerator();
+        else
+            throw new IllegalArgumentException("Uknown quality system");
+        if(hasProfile("audit", env)) {
+            base = new AuditNumberGenerator(base);
+        }
+        if(hasProfile("demo", env))
+            base = new DemoNumberGenerator(base);
+        return base;
+    }
+
+    private boolean hasProfile(String profile, Environment env) {
+        for(String activeProfile : env.getActiveProfiles())
+            if(activeProfile.equals(profile))
+                return true;
+        return false;
     }
 
     @Bean
