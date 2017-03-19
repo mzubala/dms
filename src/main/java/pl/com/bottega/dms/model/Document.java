@@ -113,6 +113,17 @@ public class Document {
         confirmation.confirmFor(cmd.getEmployeeId());
     }
 
+    public void export(DocumentBuilder builder) {
+        builder.buildTitle(title);
+        builder.buildContent(content);
+        builder.buildCreatedAt(createdAt);
+        builder.buildNumber(number);
+        builder.buildStatus(status);
+        builder.buildType(documentType);
+        for (Confirmation confirmation : confirmations)
+            builder.buildConfirmation(confirmation.getOwner(), confirmation.getProxy(), confirmation.getConfirmationDate());
+    }
+
     public DocumentStatus getStatus() {
         return status;
     }
